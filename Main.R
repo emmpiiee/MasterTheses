@@ -74,6 +74,21 @@ loading<-function(loadingSwitch){
     test <- na.omit(testfull)
     main <- na.omit(mainfull)
     
+    # order by gender
+    test %>%
+      group_by(Gender) %>%
+      summarise(n_distinct(ID))
+    
+    # average duration 
+    (sum(test$datetimefinish - test$datetime) - 269)/28
+    
+    main %>%
+      group_by(Gender) %>%
+      summarise(n_distinct(ID))
+    
+    ((sum(main$datetimefinish - main$datetime))-309-152-585-244-805-119)/138
+    
+    
   }
 }
 
