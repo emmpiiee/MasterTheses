@@ -73,6 +73,9 @@ loading<-function(loadingSwitch){
     mainfull$Owner <- NULL
     test <- na.omit(testfull)
     main <- na.omit(mainfull)
+  
+    #fred geert emma eruit
+    main <- main[-c(4, 67, 144), ]
     
     # order by gender
     test %>%
@@ -86,8 +89,25 @@ loading<-function(loadingSwitch){
       group_by(Gender) %>%
       summarise(n_distinct(ID))
     
-    ((sum(main$datetimefinish - main$datetime))-309-152-585-244-805-119)/138
+    ((sum(main$datetimefinish - main$datetime))-309-585-102-119-244)/136
     
+    
+    #histograms
+    histo <- test %>% 
+      group_by(Age) %>%
+      summarise(number = n())
+    
+    ggplot(data=histo, aes(x=Age, y=number)) +
+      geom_bar(stat="identity") + scale_x_continuous("Age") + theme(axis.text.x = element_text( hjust = 1))
+    
+    
+    
+     histo <- main %>% 
+      group_by(Age) %>%
+      summarise(number = n())
+    
+    ggplot(data=histo, aes(x=Age, y=number)) +
+      geom_bar(stat="identity") + scale_x_continuous("Age") + theme(axis.text.x = element_text( hjust = 1))
     
   }
 }
