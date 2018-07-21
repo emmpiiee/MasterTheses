@@ -29,6 +29,11 @@ Main<-function(){
   while(!require('gbm'))
     install.packages('gbm')
  
+  install.packages("stargazer")
+  library(stargazer)
+  
+  install.packages("xtable")
+  library(xtable)
   # Set switches 
   loadingSwitch <- TRUE
   now<-Sys.time()
@@ -76,7 +81,9 @@ loading<-function(loadingSwitch){
   
     #fred geert emma eruit
     main <- main[-c(4, 67, 144), ]
-    
+    #caroline en janwillem
+    main[67, 3] = "Male"
+    main[34, 3] = "Female"    
     # order by gender
     test %>%
       group_by(Gender) %>%
@@ -108,6 +115,65 @@ loading<-function(loadingSwitch){
     
     ggplot(data=histo, aes(x=Age, y=number)) +
       geom_bar(stat="identity") + scale_x_continuous("Age") + theme(axis.text.x = element_text( hjust = 1))
+    
+    histo <- test %>% 
+      group_by(Leaderbord, Gender) %>%
+      summarise(number = n())
+    
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
+    object1 <- xtable(object)
+
+    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
+    aggregate(cbind(Week, Week2, Week3) ~ Gender , data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
+    
+    
+    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = main, FUN = function(x) c(med = median(x), mean = mean(x),n = length(x) ) )
+    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = main, FUN = function(x) c(med = median(x), mean = mean(x), n = length(x) ) )
+    aggregate(cbind(Week, Week2, Week3) ~ Gender , data = main, FUN = function(x) c(med = median(x), mean = mean(x), n = length(x) ) )
+     
+    unnest(object)
+    # histograms leaderbord and no
+    histo <- main %>% 
+      group_by(Leaderbord, Week) %>%
+      summarise(number = n())
+    histo$count <- as.integer(histo$Leaderbord) * 68
+    histo$count<- gsub(0, 73, histo$count)
+    histo$percentage <- histo$number/as.integer(histo$count)
+    
+    ggplot(histo,aes(x=Week,y=percentage,fill=factor(Leaderbord)))+
+      geom_bar(stat="identity",position="dodge")+
+      scale_fill_discrete(name="Leaderbord",
+                          breaks=c(0, 1),
+                          labels=c("No", "Yes"))+
+      xlab("Weeks left")+ylab("Percentage participants booked") +theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    histo <- main %>% 
+      group_by(Leaderbord, Week2) %>%
+      summarise(number = n())
+    histo$count <- as.integer(histo$Leaderbord) * 68
+    histo$count<- gsub(0, 73, histo$count)
+    histo$percentage <- histo$number/as.integer(histo$count)
+    
+    ggplot(histo,aes(x=Week2,y=percentage,fill=factor(Leaderbord)))+
+      geom_bar(stat="identity",position="dodge")+
+      scale_fill_discrete(name="Leaderbord",
+                          breaks=c(0, 1),
+                          labels=c("No", "Yes"))+
+      xlab("Weeks left")+ylab("Percentage participants booked") +theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    histo <- main %>% 
+      group_by(Leaderbord, Week3) %>%
+      summarise(number = n())
+    histo$count <- as.integer(histo$Leaderbord) * 68
+    histo$count<- gsub(0, 73, histo$count)
+    histo$percentage <- histo$number/as.integer(histo$count)
+    
+    ggplot(histo,aes(x=Week3,y=percentage,fill=factor(Leaderbord)))+
+      geom_bar(stat="identity",position="dodge")+
+      scale_fill_discrete(name="Leaderbord",
+                          breaks=c(0, 1),
+                          labels=c("No", "Yes"))+
+      xlab("Weeks left")+ylab("Percentage participants booked") +theme(axis.text.x = element_text(angle = 45, hjust = 1))
     
   }
 }
