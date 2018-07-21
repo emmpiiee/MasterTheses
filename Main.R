@@ -28,8 +28,7 @@ Main<-function(){
     install.packages('caret')
   while(!require('gbm'))
     install.packages('gbm')
-  
-  
+ 
   # Set switches 
   loadingSwitch <- TRUE
   now<-Sys.time()
@@ -49,16 +48,32 @@ loading<-function(loadingSwitch){
   if(loadingSwitch)
   {
     data.folder  <<- 
-      if(grepl("Michael", getwd())) {
-        "C:/Users/Michael"
-      } else if(grepl("Roel", getwd())) {
-        "training_set_VU_DM_2014.csv"
-      } else if(grepl("Emma", getwd())) {
+      if(grepl("Emma", getwd())) {
         "/Users/Emma/Documents/Master/Scriptie/Data/finaldatacsv.csv"
       }
     
     data <- fread(data.folder, header=TRUE, na.strings=c("","NULL","NA"))       # 31 seconde bij Emma, 6 bij Roel
-  
+    colnames(data) = gsub(" ", "_",colnames(data))
+    data$Created_date<- gsub("T", " ", data$Created_date)
+    data$Created_date<- gsub("Z", "", data$Created_date)
+    data$Updated_date<- gsub("T", " ", data$Updated_date)
+    data$Updated_date<- gsub("Z", "", data$Updated_date)
+    
+    data$date <- substr(data$Created_date, 1, 10)
+    data$date <- as.Date(data$date)
+    data$datetime <- as.POSIXct(data$Created_date)
+    data$datetimefinish <- as.POSIXct(data$Updated_date)
+    
+    testfull <- data[data$date >= "2018-06-21" & data$date <= "2018-06-22",]
+    mainfull <-data[data$date >= "2018-06-22" & data$date <= "2018-07-21",]
+    
+    testfull$Title <- NULL
+    testfull$Owner <- NULL
+    mainfull$Title <- NULL
+    mainfull$Owner <- NULL
+    test <- na.omit(testfull)
+    main <- na.omit(mainfull)
+    
   }
 }
 
