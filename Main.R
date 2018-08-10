@@ -34,6 +34,10 @@ Main<-function(){
   
   install.packages("xtable")
   library(xtable)
+  
+  install.packages("ggpubr")
+  library("ggpubr")
+  
   # Set switches 
   loadingSwitch <- TRUE
   now<-Sys.time()
@@ -116,22 +120,24 @@ loading<-function(loadingSwitch){
     ggplot(data=histo, aes(x=Age, y=number)) +
       geom_bar(stat="identity") + scale_x_continuous("Age") + theme(axis.text.x = element_text( hjust = 1))
     
-    histo <- test %>% 
+    histo <- main %>% 
       group_by(Leaderbord, Gender) %>%
       summarise(number = n())
     
-    object <- aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
-    object1 <- xtable(object)
+    #to latex table
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = test, FUN = function(x) c(med = median(x),mean = mean(x)) )
+    object1 <-as.data.frame(lapply(object, unlist))
+    xtable(object1)
 
-    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
-    aggregate(cbind(Week, Week2, Week3) ~ Gender , data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = test, FUN = function(x) c(med = median(x),mean = mean(x), n = length(x) ) )
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Gender , data = test, FUN = function(x) c(med = median(x),mean = mean(x) ) )
     
     
-    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = main, FUN = function(x) c(med = median(x), mean = mean(x),n = length(x) ) )
-    aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = main, FUN = function(x) c(med = median(x), mean = mean(x), n = length(x) ) )
-    aggregate(cbind(Week, Week2, Week3) ~ Gender , data = main, FUN = function(x) c(med = median(x), mean = mean(x), n = length(x) ) )
-     
-    unnest(object)
+   object <-  aggregate(cbind(Week, Week2, Week3) ~ Leaderbord + Gender, data = main, FUN = function(x) c(med = median(x), mean = mean(x)) )
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Leaderbord , data = main, FUN = function(x) c(med = median(x), mean = mean(x) ) )
+    object <- aggregate(cbind(Week, Week2, Week3) ~ Gender , data = main, FUN = function(x) c(med = median(x), mean = mean(x) ) )
+    
+    
     # histograms leaderbord and no
     histo <- main %>% 
       group_by(Leaderbord, Week) %>%
@@ -174,7 +180,129 @@ loading<-function(loadingSwitch){
                           breaks=c(0, 1),
                           labels=c("No", "Yes"))+
       xlab("Weeks left")+ylab("Percentage participants booked") +theme(axis.text.x = element_text(angle = 45, hjust = 1))
+   
     
+    # Tests
+    #wilcox
+    
+    data1 <- main[,c("Leaderbord","Week")]
+    group_by(data1, Leaderbord) %>%
+      summarise(
+        count = n(),
+        median = median(Week, na.rm = TRUE),
+        IQR = IQR(Week, na.rm = TRUE)
+      )
+    ggboxplot(data1, x = "Leaderbord", y = "Week", 
+              color = "Leaderbord", palette = c("#00AFBB", "#E7B800"),
+              ylab = "Week", xlab = "Leaderbord")
+    
+    # GAME 1
+    # two-sided
+    wilcox.test(Week ~ Leaderbord, data = main,
+                exact = FALSE)
+    # one sided
+    wilcox.test(Week ~ Leaderbord, data = main,
+                exact = FALSE, alternative = "greater")
+    
+    # GAME 2
+    # two-sided
+    wilcox.test(Week2 ~ Leaderbord, data = main,
+                exact = FALSE)
+    # one sided
+    wilcox.test(Week2 ~ Leaderbord, data = main,
+                exact = FALSE, alternative = "greater")
+    
+    # GAME 3
+    # two-sided
+    wilcox.test(Week3 ~ Leaderbord, data = main,
+                exact = FALSE)
+    # one sided
+    wilcox.test(Week3 ~ Leaderbord, data = main,
+                exact = FALSE, alternative = "greater")
+    
+    
+    
+    # chi-square
+    chisq.test(table(main$Week, main$Leaderbord))
+    
+    chisq.test(table(main$Week2, main$Leaderbord))
+    
+    chisq.test(table(main$Leaderbord, main$Week3))
+    
+    # t-test
+    t.test(Week ~ Leaderbord, data = main)
+    # one sided
+
+    
+    # GAME 2
+    # two-sided
+    t.test(Week2 ~ Leaderbord, data = main)
+    # one sided
+
+    
+    # GAME 3
+    # two-sided
+    t.test(Week3 ~ Leaderbord, data = main)
+    
+    # game 2 and 3
+    
+    data2 <- main[,c("Week2","Week3")]
+   
+    group2 <- group_by(data2, Week2) %>%
+      summarise(
+        count = n()
+      )
+    group3 <- group_by(data2, Week3) %>%
+      summarise(
+        count = n()
+      )
+    wilcox.test(main$Week2, mu = median(main$Week3))
+    wilcox.test(main$Week3, mu = median(main$Week2))
+    
+    
+    
+    
+    week2 <- c(39,0,0,0,0,0,0,1,0,0,3,2,4,79,2,11)
+    week3 <- c(99,1,1,2,1,0,0,16,1,1,3,3,2,2,1,8)
+    survey = as.data.frame(rbind(week2, week3))
+    names(survey) = c('0', '1', '2','3', '4', '5','6', '7', '8','9', '10', '11','12', '13', '14', '15')
+    chisq.test(survey)
   }
 }
 
+
+game <- main$Week2
+week <- main$Week2
+hyp2 <- data.frame(game, week)
+hyp2$game <- "2"
+
+game <- main$Week3
+week <- main$Week3
+hyp3 <- data.frame(game, week)
+hyp3$game <- "3"
+
+hyp <- rbind(hyp2, hyp3)
+
+# GAME 1
+# two-sided
+wilcox.test(week ~ game, data = hyp,
+            exact = FALSE)
+# one sided
+wilcox.test(week ~ game, data = hyp,
+            exact = FALSE, alternative = "greater")
+
+
+# t-test
+t.test(week ~ game, data = hyp)
+# one sided
+
+
+# GAME 2
+# two-sided
+t.test(Week2 ~ Leaderbord, data = main)
+# one sided
+
+
+# GAME 3
+# two-sided
+t.test(Week3 ~ Leaderbord, data = main)
