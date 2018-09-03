@@ -306,3 +306,6 @@ t.test(Week2 ~ Leaderbord, data = main)
 # GAME 3
 # two-sided
 t.test(Week3 ~ Leaderbord, data = main)
+
+
+aggregate(. ~ game, data=hyp2, sum)
